@@ -54,7 +54,7 @@ class TrainOptions:
         self.parser.add_argument('--gan_type', type=str, default='contextual')
 
         # for generator
-        self.parser.add_argument('--g_cnum', type=int, default=32,
+        self.parser.add_argument('--g_cnum', type=int, default=64,
                                  help='# of generator filters in first conv layer')
         self.parser.add_argument('--d_cnum', type=int, default=64,
                                  help='# of discriminator filters in first conv layer')
