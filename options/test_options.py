@@ -20,7 +20,7 @@ class TestOptions:
         # input/output sizes
 
         # for setting inputs
-        self.parser.add_argument('--model', type=str, default='vcp')
+        self.parser.add_argument('--model', type=str, default='srn')
         self.parser.add_argument('--random_crop', type=int, default=1,
                                  help='using random crop to process input image when '
                                       'the required size is smaller than the given size')
