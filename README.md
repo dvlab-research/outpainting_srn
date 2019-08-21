@@ -103,6 +103,7 @@ If our method is useful for your research, please consider citing:
       title={Wide-Context Semantic Image Extrapolation},
       author={Wang, Yi and Tao, Xin and Shen, Xiaoyong and Jia, Jiaya},
       booktitle={IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+      pages={1399--1408},
       year={2019}
     }
 
