@@ -56,7 +56,7 @@ cd outpainting_srn/
 
 ## Testing
 
-- Download the pretrained model through the following link ([CelebA-HQ_256](https://drive.google.com/drive/folders/1q8LhVV6oFaqhWABf10lHzkPONJVO7tWr?usp=sharing)), and unzip and put them into `checkpoints/`. 
+- Download the pretrained models through the following links ([CelebA-HQ_256](https://drive.google.com/drive/folders/1q8LhVV6oFaqhWABf10lHzkPONJVO7tWr?usp=sharing), [Paris streetview](https://drive.google.com/drive/folders/1ozhAvkW12bjuH9E8SkAbkjXAKg1JIwt4?usp=sharing), [Cityscapes](https://drive.google.com/drive/folders/11plG1OBlR1elsOVmagA3a3SkdC30f-em?usp=sharing)), and unzip and put them into `checkpoints/`. 
 - To test images in a folder, we call `test.py` with the opinion `--dataset_path` and `--load_model_dir`. We give some CelebA-HQ_256 examples in the `imgs/celebahq-256/`. For example:
 
   ```bash
