@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.framework.python.ops import add_arg_scope
+from contrib.arg_scope import add_arg_scope
+#from tensorflow.contrib.framework.python.ops import add_arg_scope
 import urllib
 import math
 import scipy.stats as st
@@ -68,7 +69,7 @@ def subpixel_conv(x, cnum, ksize, target_size, stride=1, rate=1, name='subpixel_
     assert th >= h and tw >= w and th % h == 0 and tw % w == 0
     assert c % (th//h*tw//w) == 0
 
-    x = tf.layers.conv2d(
+    x = tf.compat.v1.layers.conv2d(
         x, cnum, ksize, stride, dilation_rate=rate,
         activation=activation, padding=padding, name=name, reuse=reuse)
     b, h, w, c = x.get_shape().as_list()
@@ -91,7 +92,7 @@ def bilinear_conv(x, cnum, ksize, target_size, stride=1, rate=1, name='subpixel_
     assert th >= h and tw >= w and th % h == 0 and tw % w == 0
     assert c % (th//h*tw//w) == 0
 
-    x = tf.image.resize_bilinear(x, target_size, align_corners=True)
+    x = tf.compat.v1.image.resize_bilinear(x, target_size, align_corners=True)
     x = tf.layers.conv2d(
         x, cnum, ksize, stride, dilation_rate=rate,
         activation=activation, padding=padding, name=name, reuse=reuse)
@@ -100,16 +101,15 @@ def bilinear_conv(x, cnum, ksize, target_size, stride=1, rate=1, name='subpixel_
 
 # mask: 1 for unknown and 0 for known
 def context_normalization(x, mask, alpha=0.5, eps=1e-5):
-    mask_s = tf.image.resize_nearest_neighbor(1 - mask[:, :, :, 0:1], x.get_shape().as_list()[1:3])
-    x_known_cnt = tf.maximum(eps, tf.reduce_sum(mask_s, [1, 2], keep_dims=True))
-    x_known_mean = tf.reduce_sum(x * mask_s, [1, 2], keep_dims=True) / x_known_cnt
-    x_known_variance = tf.reduce_sum((x * mask_s - x_known_mean) ** 2, [1, 2], keep_dims=True) / x_known_cnt
+    mask_s = tf.compat.v1.image.resize_nearest_neighbor(1 - mask[:, :, :, 0:1], x.get_shape().as_list()[1:3])
+    x_known_cnt = tf.maximum(eps, tf.reduce_sum(mask_s, [1, 2]))
+    x_known_mean = tf.reduce_sum(x * mask_s, [1, 2]) / x_known_cnt
+    x_known_variance = tf.reduce_sum((x * mask_s - x_known_mean) ** 2, [1, 2]) / x_known_cnt
 
     mask_s_rev = 1 - mask_s
-    x_unknown_cnt = tf.maximum(eps, tf.reduce_sum(mask_s_rev, [1, 2], keep_dims=True))
-    x_unknown_mean = tf.reduce_sum(x * mask_s_rev, [1, 2], keep_dims=True) / x_unknown_cnt
-    x_unknown_variance = tf.reduce_sum((x * mask_s_rev - x_unknown_mean) ** 2, [1, 2],
-                                       keep_dims=True) / x_unknown_cnt
+    x_unknown_cnt = tf.maximum(eps, tf.reduce_sum(mask_s_rev, [1, 2]))
+    x_unknown_mean = tf.reduce_sum(x * mask_s_rev, [1, 2]) / x_unknown_cnt
+    x_unknown_variance = tf.reduce_sum((x * mask_s_rev - x_unknown_mean) ** 2, [1, 2]) / x_unknown_cnt
     x_unknown = alpha * tf.nn.batch_normalization(x * mask_s_rev, x_unknown_mean, x_unknown_variance, x_known_mean,
                                                   tf.sqrt(x_known_variance), eps) + (1 - alpha) * x * mask_s_rev
     x = x_unknown * mask_s_rev + x * mask_s
@@ -130,7 +130,7 @@ def flatten(x, name='flatten'):
 
 
 def resize(x, scale=2, to_shape=None, align_corners=True, dynamic=False,
-           func=tf.image.resize_bilinear, name='resize'):
+           func=tf.compat.v1.image.resize_bilinear, name='resize'):
     if dynamic:
         xs = tf.cast(tf.shape(x), tf.float32)
         new_xs = [tf.cast(xs[1]*scale, tf.int32),
@@ -408,8 +408,8 @@ class CSFlow:
 
     def calc_relative_distances(self, axis=3):
         epsilon = 1e-5
-        div = tf.reduce_min(self.raw_distances, axis=axis, keep_dims=True)
-        # div = tf.reduce_mean(self.raw_distances, axis=axis, keep_dims=True)
+        div = tf.reduce_min(self.raw_distances, axis=axis)
+        # div = tf.reduce_mean(self.raw_distances, axis=axis)
         relative_dist = self.raw_distances / (div + epsilon)
         return relative_dist
 
@@ -433,7 +433,7 @@ class CSFlow:
 
     @staticmethod
     def sum_normalize(cs, axis=3):
-        reduce_sum = tf.reduce_sum(cs, axis, keep_dims=True, name='sum')
+        reduce_sum = tf.reduce_sum(cs, axis, name='sum')
         return tf.divide(cs, reduce_sum, name='sumNormalized')
 
     def center_by_T(self, T_features, I_features):

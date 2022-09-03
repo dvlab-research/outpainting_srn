@@ -1,6 +1,7 @@
 import tensorflow as tf
-from tensorflow.contrib.framework.python.ops import arg_scope
-from tensorflow.contrib.framework.python.ops import add_arg_scope
+from contrib import arg_scope
+from contrib.arg_scope import add_arg_scope
+#from tensorflow.contrib.framework.python.ops import add_arg_scope
 import numpy as np
 from functools import partial
 
@@ -15,15 +16,15 @@ from util.util import f2uint
 class SemanticRegenerationNet:
     def __init__(self):
         self.name = 'SemanticRegenerationNet'
-        self.conv5 = partial(tf.layers.conv2d, kernel_size=5, activation=tf.nn.elu, padding='SAME')
-        self.conv3 = partial(tf.layers.conv2d, kernel_size=3, activation=tf.nn.elu, padding='SAME')
-        self.d_unit = partial(tf.layers.conv2d, kernel_size=5, strides=2, activation=tf.nn.leaky_relu, padding='SAME')
+        self.conv5 = partial(tf.compat.v1.layers.conv2d, kernel_size=5, activation=tf.nn.elu, padding='SAME')
+        self.conv3 = partial(tf.compat.v1.layers.conv2d, kernel_size=3, activation=tf.nn.elu, padding='SAME')
+        self.d_unit = partial(tf.compat.v1.layers.conv2d, kernel_size=5, strides=2, activation=tf.nn.leaky_relu, padding='SAME')
 
     @add_arg_scope
     def _deconv(self, x, filters, name='deconv', reuse=False):
         h, w = x.get_shape().as_list()[1:3]
-        x = tf.image.resize_nearest_neighbor(x, [h * 2, w * 2], align_corners=True)
-        with tf.variable_scope(name, reuse=reuse):
+        x = tf.compat.v1.image.resize_nearest_neighbor(x, [h * 2, w * 2], align_corners=True)
+        with tf.compat.v1.variable_scope(name, reuse=reuse):
             x = self.conv3(inputs=x, filters=filters, strides=1, name=name+'_conv')
         return x
 
@@ -75,7 +76,7 @@ class SemanticRegenerationNet:
         x = conv3(inputs=x, filters=cnum * 2, strides=1, name='allconv14')
         x = deconv(x, filters=cnum, name='allconv15_upsample')
         x = conv3(inputs=x, filters=cnum // 2, strides=1, name='allconv16')
-        x = tf.layers.conv2d(inputs=x, kernel_size=3, filters=3, strides=1, activation=None, padding='SAME',
+        x = tf.compat.v1.layers.conv2d(inputs=x, kernel_size=3, filters=3, strides=1, activation=None, padding='SAME',
                              name='allconv17')
         x = tf.clip_by_value(x, -1, 1)
         return x
@@ -104,7 +105,7 @@ class SemanticRegenerationNet:
 
         # two stage network
         cnum = config.g_cnum
-        with tf.variable_scope(name, reuse=reuse):
+        with tf.compat.v1.variable_scope(name, reuse=reuse):
             x = self.FEN(x, cnum)
             # subpixel module, ensure the output channel the same as the input
             if config.feat_expansion_op == 'subpixel':
